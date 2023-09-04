@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
 
-  <name>romea_robot_to_robot_localisation</name>
+  <name>romea_robot_to_robot_localisation_core</name>
   <version>0.0.0</version>
   <description>Package romea_robot_to_robot_localisation description</description>
 

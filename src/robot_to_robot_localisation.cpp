@@ -66,11 +66,11 @@ void R2RLocalisation<FilterType_>::make_status_publisher_()
 template<FilterType FilterType_>
 void R2RLocalisation<FilterType_>::make_tf_publisher_()
 {
-  tf_publisher_ = make_transform_publisher<Pose2D>(
-    node_,
-    get_map_frame_id(node_),
-    get_base_footprint_frame_id(node_),
-    true);
+  // tf_publisher_ = make_transform_publisher<Pose2D>(
+  //   node_,
+  //   get_map_frame_id(node_),
+  //   get_base_footprint_frame_id(node_),
+  //   true);
 }
 
 //-----------------------------------------------------------------------------
@@ -123,7 +123,7 @@ void R2RLocalisation<FilterType_>::timer_callback_()
       leader_pose_and_twist.twist.angularSpeed << std::endl;
 
     leader_pose_and_twist_publisher_->publish(stamp, leader_pose_and_twist);
-    tf_publisher_->publish(stamp, leader_pose_and_twist.pose);
+    // tf_publisher_->publish(stamp, leader_pose_and_twist.pose);
     //     rviz_.display(results);
   }
 

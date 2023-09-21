@@ -22,20 +22,29 @@ class R2RLocalisationFilter
 public:
   using Filter = typename  R2RLocalisationTraits<FilterType_>::Filter;
   using Predictor = typename R2RLocalisationTraits<FilterType_>::Predictor;
-  using UpdaterLeaderTwist = typename R2RLocalisationTraits<FilterType_>::UpdaterLeaderTwist;
   using UpdaterTwist = typename  R2RLocalisationTraits<FilterType_>::UpdaterTwist;
+  using UpdaterLeaderTwist = typename R2RLocalisationTraits<FilterType_>::UpdaterLeaderTwist;
+  using UpdaterLinearSpeed = typename R2RLocalisationTraits<FilterType_>::UpdaterLinearSpeed;
+  using UpdaterLinearSpeeds = typename R2RLocalisationTraits<FilterType_>::UpdaterLinearSpeeds;
+  using UpdaterAngularSpeed = typename  R2RLocalisationTraits<FilterType_>::UpdaterAngularSpeed;
   using UpdaterRange = typename  R2RLocalisationTraits<FilterType_>::UpdaterRange;
   using UpdaterPose = typename R2RLocalisationTraits<FilterType_>::UpdaterPose;
   using Results = typename R2RLocalisationTraits<FilterType_>::Results;
 
-  using UpdaterPlugin = LocalisationUpdaterInterfaceBase;
-  using UpdaterPluginLeaderTwist = LocalisationUpdaterInterface<Filter, UpdaterLeaderTwist,
+  using UpdaterInterface = LocalisationUpdaterInterfaceBase;
+  using UpdaterInterfaceTwist = LocalisationUpdaterInterface<Filter, UpdaterTwist,
       romea_localisation_msgs::msg::ObservationTwist2DStamped>;
-  using UpdaterPluginTwist = LocalisationUpdaterInterface<Filter, UpdaterTwist,
+  using UpdaterInterfaceLeaderTwist = LocalisationUpdaterInterface<Filter, UpdaterLeaderTwist,
       romea_localisation_msgs::msg::ObservationTwist2DStamped>;
-  using UpdaterPluginRange = LocalisationUpdaterInterface<Filter, UpdaterRange,
+  using UpdaterInterfaceLinearSpeed = LocalisationUpdaterInterface<Filter, UpdaterLinearSpeed,
+      romea_localisation_msgs::msg::ObservationTwist2DStamped>;
+  using UpdaterInterfaceLinearSpeeds = LocalisationUpdaterInterface<Filter, UpdaterLinearSpeeds,
+      romea_localisation_msgs::msg::ObservationTwist2DStamped>;
+  using UpdaterInterfaceAngularSpeed = LocalisationUpdaterInterface<Filter, UpdaterAngularSpeed,
+      romea_localisation_msgs::msg::ObservationAngularSpeedStamped>;
+  using UpdaterInterfaceRange = LocalisationUpdaterInterface<Filter, UpdaterRange,
       romea_localisation_msgs::msg::ObservationRangeStamped>;
-  using UpdaterPluginPose = LocalisationUpdaterInterface<Filter, UpdaterPose,
+  using UpdaterInterfacePose = LocalisationUpdaterInterface<Filter, UpdaterPose,
       romea_localisation_msgs::msg::ObservationPose2DStamped>;
 
 public:
@@ -60,17 +69,19 @@ private:
   template<typename Interface>
   void add_proprioceptive_updater_interface_(
     std::shared_ptr<rclcpp::Node> node,
-    const std::string & updater_name);
+    const std::string & updater_name,
+    const std::string & topic_name);
 
   template<typename interface>
   void add_exteroceptive_updater_interface_(
     std::shared_ptr<rclcpp::Node> node,
-    const std::string & updater_name);
+    const std::string & updater_name,
+    const std::string & topic_name);
 
 private:
   std::shared_ptr<Filter> filter_;
   std::unique_ptr<Results> results_;
-  std::list<std::unique_ptr<UpdaterPlugin>> updater_interfaces_;
+  std::list<std::unique_ptr<UpdaterInterface>> updater_interfaces_;
 };
 
 
@@ -81,12 +92,21 @@ R2RLocalisationFilter<FilterType_>::R2RLocalisationFilter(std::shared_ptr<rclcpp
   results_(nullptr),
   updater_interfaces_()
 {
-  RCLCPP_INFO_STREAM(node->get_logger(), " init filter ");
   make_filter_(node);
-  add_proprioceptive_updater_interface_<UpdaterPluginTwist>(node, "twist_updater");
-  add_proprioceptive_updater_interface_<UpdaterPluginLeaderTwist>(node, "leader_twist_updater");
-  add_exteroceptive_updater_interface_<UpdaterPluginPose>(node, "pose_updater");
-  add_exteroceptive_updater_interface_<UpdaterPluginRange>(node, "range_updater");
+  add_proprioceptive_updater_interface_<UpdaterInterfaceTwist>(
+    node, "twist_updater", "twist");
+  add_proprioceptive_updater_interface_<UpdaterInterfaceLinearSpeed>(
+    node, "linear_speed_updater", "twist");
+  add_proprioceptive_updater_interface_<UpdaterInterfaceLinearSpeeds>(
+    node, "linear_speeds_updater", "twist");
+  add_proprioceptive_updater_interface_<UpdaterInterfaceAngularSpeed>(
+    node, "angular_speed_updater", "angular_speed");
+  add_proprioceptive_updater_interface_<UpdaterInterfaceLeaderTwist>(
+    node, "leader_twist_updater", "leader_twist");
+  add_exteroceptive_updater_interface_<UpdaterInterfacePose>(
+    node, "pose_updater", "leader_pose");
+  add_exteroceptive_updater_interface_<UpdaterInterfaceRange>(
+    node, "range_updater", "range");
   make_results_(node);
 }
 
@@ -112,6 +132,7 @@ void R2RLocalisationFilter<FilterType_>::make_filter_(std::shared_ptr<rclcpp::No
   declare_predictor_parameters(node);
   declare_filter_parameters<FilterType_>(node);
   filter_ = make_filter<Filter, Predictor, FilterType_>(node);
+  RCLCPP_INFO_STREAM(node->get_logger(), "filter started ");
 }
 
 //-----------------------------------------------------------------------------
@@ -126,12 +147,12 @@ template<FilterType FilterType_>
 template<typename Interface>
 void R2RLocalisationFilter<FilterType_>::add_proprioceptive_updater_interface_(
   std::shared_ptr<rclcpp::Node> node,
-  const std::string & updater_name)
+  const std::string & updater_name,
+  const std::string & topic_name)
 {
   declare_proprioceptive_updater_parameters(node, updater_name);
 
-  if (!get_updater_topic_name(node, updater_name).empty()) {
-    RCLCPP_INFO_STREAM(node->get_logger(), " init " + updater_name);
+  if (get_updater_minimal_rate(node, updater_name) != 0) {
 
     using Updater = typename Interface::Updater;
     auto updater = make_proprioceptive_updater<Updater>(
@@ -140,11 +161,14 @@ void R2RLocalisationFilter<FilterType_>::add_proprioceptive_updater_interface_(
 
     auto plugin = make_updater_interface<Interface>(
       node,
-      updater_name,
+      topic_name,
       filter_,
       std::move(updater));
 
     updater_interfaces_.push_back(std::move(plugin));
+    RCLCPP_INFO_STREAM(node->get_logger(), updater_name + ": started ");
+  } else {
+    RCLCPP_INFO_STREAM(node->get_logger(), updater_name + ": unconfigured ");
   }
 }
 
@@ -153,79 +177,28 @@ template<FilterType FilterType_>
 template<typename Interface>
 void R2RLocalisationFilter<FilterType_>::add_exteroceptive_updater_interface_(
   std::shared_ptr<rclcpp::Node> node,
-  const std::string & updater_name)
+  const std::string & updater_name,
+  const std::string & topic_name)
 {
   declare_exteroceptive_updater_parameters(node, updater_name);
 
-  if (!get_updater_topic_name(node, updater_name).empty()) {
-    RCLCPP_INFO_STREAM(node->get_logger(), " init " + updater_name);
-
+  if (get_updater_minimal_rate(node, updater_name) != 0) {
     using Updater = typename Interface::Updater;
     auto updater = make_exteroceptive_updater<Updater, FilterType_>(
       node,
       updater_name);
     auto plugin = make_updater_interface<Interface>(
       node,
-      updater_name,
+      topic_name,
       filter_,
       std::move(updater));
 
     updater_interfaces_.push_back(std::move(plugin));
+    RCLCPP_INFO_STREAM(node->get_logger(), updater_name + ": started ");
+  } else {
+    RCLCPP_INFO_STREAM(node->get_logger(), updater_name + ": unconfigured ");
   }
 }
-
-
-// //-----------------------------------------------------------------------------
-// template<FilterType FilterType_>
-// template<typename Plugin>
-// void R2RLocalisationFilter<FilterType_>::addInputPlugin_(
-//   ros::NodeHandle & nh,
-//   ros::NodeHandle & private_nh,
-//   const std::string & updater_name)
-// {
-//   if (private_nh.hasParam(updater_name)) {
-//     ROS_INFO_STREAM(" init " + updater_name);
-//     using Updater = typename Plugin::Updater;
-//     auto updater = makeProprioceptiveUpdater<Updater>(
-//       private_nh,
-//       updater_name);
-//     auto plugin = makeUpdaterPlugin<Plugin>(
-//       nh,
-//       private_nh,
-//       updater_name,
-//       filter_,
-//       std::move(updater));
-
-//     updater_plugins_.push_back(std::move(plugin));
-//   }
-// }
-
-
-// //-----------------------------------------------------------------------------
-// template<FilterType FilterType_>
-// template<typename Plugin>
-// void R2RLocalisationFilter<FilterType_>::addUpdaterPlugin_(
-//   ros::NodeHandle & nh,
-//   ros::NodeHandle & private_nh,
-//   const std::string & updater_name)
-// {
-//   if (private_nh.hasParam(updater_name)) {
-//     ROS_INFO_STREAM(" init " + updater_name);
-//     using Updater = typename Plugin::Updater;
-//     auto updater = makeExteroceptiveUpdater<Updater, FilterType_>(
-//       private_nh,
-//       updater_name);
-
-//     auto plugin = makeUpdaterPlugin<Plugin>(
-//       nh,
-//       private_nh,
-//       updater_name,
-//       filter_,
-//       std::move(updater));
-
-//     updater_plugins_.push_back(std::move(plugin));
-//   }
-// }
 
 
 //-----------------------------------------------------------------------------

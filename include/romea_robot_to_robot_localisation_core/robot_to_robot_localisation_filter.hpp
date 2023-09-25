@@ -1,5 +1,8 @@
-#ifndef ROMEA_ROBOT_TO_ROBOT_LOCALISATION__ROBOT_TO_ROBOT_LOCALISATION_FILTER_HPP_
-#define ROMEA_ROBOT_TO_ROBOT_LOCALISATION__ROBOT_TO_ROBOT_LOCALISATION_FILTER_HPP_
+// Copyright 2022 INRAE, French National Research Institute for Agriculture, Food and Environment
+// Add license
+
+#ifndef ROMEA_ROBOT_TO_ROBOT_LOCALISATION_CORE__ROBOT_TO_ROBOT_LOCALISATION_FILTER_HPP_
+#define ROMEA_ROBOT_TO_ROBOT_LOCALISATION_CORE__ROBOT_TO_ROBOT_LOCALISATION_FILTER_HPP_
 
 // std
 #include <list>
@@ -153,7 +156,6 @@ void R2RLocalisationFilter<FilterType_>::add_proprioceptive_updater_interface_(
   declare_proprioceptive_updater_parameters(node, updater_name);
 
   if (get_updater_minimal_rate(node, updater_name) != 0) {
-
     using Updater = typename Interface::Updater;
     auto updater = make_proprioceptive_updater<Updater>(
       node,
@@ -226,4 +228,4 @@ DiagnosticReport R2RLocalisationFilter<FilterType_>::make_diagnostic_report(cons
 
 }  // namespace romea
 
-#endif  // ROMEA_ROBOT_TO_ROBOT_LOCALISATION__ROBOT_TO_ROBOT_LOCALISATION_FILTER_HPP_
+#endif  // ROMEA_ROBOT_TO_ROBOT_LOCALISATION_CORE__ROBOT_TO_ROBOT_LOCALISATION_FILTER_HPP_

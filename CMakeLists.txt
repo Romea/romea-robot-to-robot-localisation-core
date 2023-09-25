@@ -3,16 +3,16 @@ project(romea_robot_to_robot_localisation_core)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
- set(CMAKE_C_STANDARD 99)
+  set(CMAKE_C_STANDARD 99)
 endif()
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
- set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
- add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 string(TOUPPER $ENV{ROS_DISTRO} ROS_DISTRO)
@@ -30,25 +30,24 @@ find_package(romea_localisation_msgs REQUIRED)
 find_package(romea_localisation_utils REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
- src/robot_to_robot_localisation.cpp)
+  src/robot_to_robot_localisation.cpp)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
- $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
- $<INSTALL_INTERFACE:include>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 
 target_compile_definitions(${PROJECT_NAME}
- PRIVATE "ROMEA_ROBOT_TO_ROBOT_LOCALISATION_BUILDING_DLL")
+  PRIVATE "ROMEA_ROBOT_TO_ROBOT_LOCALISATION_BUILDING_DLL")
 
 ament_target_dependencies(${PROJECT_NAME}
- class_loader
- rclcpp
- rclcpp_components
- romea_core_common
- romea_core_localisation
- romea_common_utils
- romea_localisation_msgs
- romea_localisation_utils
- )
+  class_loader
+  rclcpp
+  rclcpp_components
+  romea_core_common
+  romea_core_localisation
+  romea_common_utils
+  romea_localisation_msgs
+  romea_localisation_utils)
 
 if(${ROS_DISTRO} STREQUAL "ROS_GALACTIC")
   rclcpp_components_register_nodes(${PROJECT_NAME} "romea::R2RKalmanLocalisation")
@@ -108,10 +107,10 @@ endif()
 
 
 install(TARGETS
- ${PROJECT_NAME}
- ARCHIVE DESTINATION lib
- LIBRARY DESTINATION lib
- RUNTIME DESTINATION bin)
+  ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
 
 
 #add_executable(${PROJECT_NAME}_node2 src/robot_to_world_localisation_node.cpp)
@@ -139,8 +138,8 @@ ament_export_libraries(${PROJECT_NAME})
 #ament_export_targets(${PROJECT_NAME})
 
 install(TARGETS
- ${PROJECT_NAME}
- DESTINATION lib/${PROJECT_NAME})
+  ${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME})
 
 install(
   DIRECTORY launch

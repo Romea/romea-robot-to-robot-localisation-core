@@ -84,13 +84,16 @@ private:
   void add_proprioceptive_updater_interface_(
     std::shared_ptr<rclcpp::Node> node,
     const std::string & updater_name,
-    const std::string & topic_name);
+    const std::string & topic_name,
+    const unsigned int & default_minimal_rate);
 
   template<typename interface>
   void add_exteroceptive_updater_interface_(
     std::shared_ptr<rclcpp::Node> node,
     const std::string & updater_name,
-    const std::string & topic_name);
+    const std::string & topic_name,
+    const unsigned int & default_minimal_rate,
+    const std::string & default_trigger_mode);
 
 private:
   std::shared_ptr<Filter> filter_;
@@ -108,19 +111,19 @@ R2RLocalisationFilter<FilterType_>::R2RLocalisationFilter(std::shared_ptr<rclcpp
 {
   make_filter_(node);
   add_proprioceptive_updater_interface_<UpdaterInterfaceTwist>(
-    node, "twist_updater", "twist");
+    node, "twist_updater", "twist", 10);
   add_proprioceptive_updater_interface_<UpdaterInterfaceLinearSpeed>(
-    node, "linear_speed_updater", "twist");
+    node, "linear_speed_updater", "twist", 0);
   add_proprioceptive_updater_interface_<UpdaterInterfaceLinearSpeeds>(
-    node, "linear_speeds_updater", "twist");
+    node, "linear_speeds_updater", "twist", 0);
   add_proprioceptive_updater_interface_<UpdaterInterfaceAngularSpeed>(
-    node, "angular_speed_updater", "angular_speed");
+    node, "angular_speed_updater", "angular_speed", 0);
   add_proprioceptive_updater_interface_<UpdaterInterfaceLeaderTwist>(
-    node, "leader_twist_updater", "leader_twist");
+    node, "leader_twist_updater", "leader_twist", 10);
   add_exteroceptive_updater_interface_<UpdaterInterfacePose>(
-    node, "pose_updater", "leader_pose");
+    node, "pose_updater", "leader_pose", 1, "once");
   add_exteroceptive_updater_interface_<UpdaterInterfaceRange>(
-    node, "range_updater", "range");
+    node, "range_updater", "range", 10, "always");
   make_results_(node);
 }
 
@@ -143,8 +146,8 @@ void R2RLocalisationFilter<FilterType_>::reset()
 template<FilterType FilterType_>
 void R2RLocalisationFilter<FilterType_>::make_filter_(std::shared_ptr<rclcpp::Node> node)
 {
-  declare_predictor_parameters(node);
   declare_filter_parameters<FilterType_>(node);
+  declare_predictor_parameters(node, 1.0, 1.0, std::numeric_limits<double>::max());
   filter_ = make_filter<Filter, Predictor, FilterType_>(node);
   RCLCPP_INFO_STREAM(node->get_logger(), "filter started ");
 }
@@ -162,9 +165,10 @@ template<typename Interface>
 void R2RLocalisationFilter<FilterType_>::add_proprioceptive_updater_interface_(
   std::shared_ptr<rclcpp::Node> node,
   const std::string & updater_name,
-  const std::string & topic_name)
+  const std::string & topic_name,
+  const unsigned int & default_minimal_rate)
 {
-  declare_proprioceptive_updater_parameters(node, updater_name);
+  declare_proprioceptive_updater_parameters(node, updater_name, default_minimal_rate);
 
   if (get_updater_minimal_rate(node, updater_name) != 0) {
     using Updater = typename Interface::Updater;
@@ -191,9 +195,12 @@ template<typename Interface>
 void R2RLocalisationFilter<FilterType_>::add_exteroceptive_updater_interface_(
   std::shared_ptr<rclcpp::Node> node,
   const std::string & updater_name,
-  const std::string & topic_name)
+  const std::string & topic_name,
+  const unsigned int & default_minimal_rate,
+  const std::string & default_trigger_mode)
 {
-  declare_exteroceptive_updater_parameters(node, updater_name);
+  declare_exteroceptive_updater_parameters(
+    node, updater_name, default_minimal_rate, default_trigger_mode);
 
   if (get_updater_minimal_rate(node, updater_name) != 0) {
     using Updater = typename Interface::Updater;

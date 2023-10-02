@@ -1,6 +1,6 @@
 # 1 Overview #
 
-This package provides robot to robot localisation node able to estimate the robot leader position in using RTLS system
+This package provides robot to robot localisation node able to estimate the leader robot pose by a Kalman or particle filter using observations provided by three localisation plugins: odo ([gitlab](https://gitlab.irstea.fr/romea_ros2/algorithms/localisation/romea_localisation_odo_plugin), [github](https://github.com/Romea/romea-ros2-localisation-odo-plugin)), imu ([gitlab](https://gitlab.irstea.fr/romea_ros2/algorithms/localisation/romea_localisation_imu_plugin), [github](https://github.com/Romea/romea-ros2-localisation-imu-plugin)) and  robot to robot rtls plugins ([gitlab](https://gitlab.irstea.fr/romea_ros2/algorithms/localisation/romea_robot_to_robot_localisation_rtls_plugin), [github](https://github.com/Romea/romea-ros2-robot-to-robot-localisation-rtls-plugin)). This plugins are used to convert data coming from sensors to observations that can be used by both filters. 
 
 # 2 Node #
 
@@ -8,23 +8,23 @@ This package provides robot to robot localisation node able to estimate the robo
 
 - localisation/twist (romea_localisation_msgs::msg::ObservationTwist2DStamped)
 
-    This topic is provided by odo localisation plugin node and contains robot twist displacement data
+    This topic is provided by odo localisation plugin node and contains robot twist displacement observation deduced from odometry data coming from controller 
 
 - localisation/angular_speed(romea_localisation_msgs::msg::ObservationAngularSpeedStamped)
 
-    This topic is provided by imu localisation plugin node and contains robot angular speed data
+    This topic is provided by imu localisation plugin node and contains robot angular speed observation deduced from data coming from IMU sensor
 
 - localisation/leader_twist(romea_localisation_msgs::msg::ObservationTwist2DStamped)
 
-    This topic is provided by rtls localisation plugin node and contains leader robot twist displacement data
+    This topic is provided by rtls localisation plugin node and contains leader robot twist displacement observation deduced from leader robot odometry data broadcasted during ranging process
 
 - localisation/pose (romea_localisation_msgs::msg::ObservationPose2DStamped)
 
-    This topic is provided by rtls localisation plugin node and contains rough estimation of the pose of the robot leader computed by trilateration
+    This topic is provided by rtls localisation plugin node and contains rough estimation of the pose of the leader robot computed by trilateration algorithm base on ranging data between rtls transceivers embedded on the follower and leader robots  
 
 - localisation/range (romea_localisation_msgs::msg::ObservationRangeStamped)
 
-    This topic is provided by rtls localisation plugin node and contains range data between follower and leader rtls transceivers
+    This topic is provided by rtls localisation plugin node and contains range observation deduced from ranging data between rtls transceivers embedded on the follower and leader robots   
 
 ### 2.2 Published Topics ###
 

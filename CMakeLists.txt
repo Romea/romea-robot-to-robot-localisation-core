@@ -50,7 +50,7 @@ ament_target_dependencies(${PROJECT_NAME}
   romea_localisation_utils)
 
 if(${ROS_DISTRO} STREQUAL "ROS_GALACTIC")
-  rclcpp_components_register_nodes(${PROJECT_NAME} "romea::R2RKalmanLocalisation")
+  rclcpp_components_register_nodes(${PROJECT_NAME} "romea::ros::R2RKalmanLocalisation")
 
   add_executable(robot_to_robot_kalman_localisation_node
     src/robot_to_robot_localisation.cpp

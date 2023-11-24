@@ -19,8 +19,8 @@
 #include <memory>
 
 // romea
-#include "romea_common_utils/publishers/data_publisher.hpp"
 #include "romea_common_utils/conversions/pose_and_twist3d_conversions.hpp"
+#include "romea_common_utils/publishers/data_publisher.hpp"
 #include "romea_common_utils/publishers/diagnostic_publisher.hpp"
 #include "romea_common_utils/publishers/transform_publisher.hpp"
 #include "romea_common_utils/publishers/odom_publisher.hpp"
@@ -31,8 +31,10 @@
 
 namespace romea
 {
+namespace ros2
+{
 
-template<FilterType FilterType_>
+template<core::FilterType FilterType_>
 class R2RLocalisation
 {
 public:
@@ -68,15 +70,17 @@ private:
   std::shared_ptr<rclcpp::TimerBase> timer_;
   std::unique_ptr<R2RLocalisationFilter<FilterType_>> filter_;
 
-  std::shared_ptr<StampedPublisherBase<Pose2D>> tf_publisher_;
-  std::shared_ptr<StampedPublisherBase<PoseAndTwist2D>> leader_pose_and_twist_publisher_;
-  std::shared_ptr<StampedPublisherBase<DiagnosticReport>> diagnostic_publisher_;
-  std::shared_ptr<PublisherBase<LocalisationFSMState>> status_publisher_;
+  std::shared_ptr<StampedPublisherBase<core::Pose2D>> tf_publisher_;
+  std::shared_ptr<StampedPublisherBase<core::PoseAndTwist2D>> leader_pose_and_twist_publisher_;
+  std::shared_ptr<StampedPublisherBase<core::DiagnosticReport>> diagnostic_publisher_;
+  std::shared_ptr<PublisherBase<core::LocalisationFSMState>> status_publisher_;
 };
 
-using R2RKalmanLocalisation = R2RLocalisation<FilterType::KALMAN>;
-using R2RParticleLocalisation = R2RLocalisation<FilterType::PARTICLE>;
+using R2RKalmanLocalisation = R2RLocalisation<core::FilterType::KALMAN>;
+using R2RParticleLocalisation = R2RLocalisation<core::FilterType::PARTICLE>;
 
+
+}  // namespace ros2
 }  // namespace romea
 
 #endif  // ROMEA_ROBOT_TO_ROBOT_LOCALISATION_CORE__ROBOT_TO_ROBOT_LOCALISATION_HPP_

@@ -59,7 +59,7 @@ def launch_setup(context, *args, **kwargs):
     else:
         composable_node = ComposableNode(
                 package="romea_robot_to_robot_localisation_core",
-                plugin="romea::R2WR2R+"+filter_type.capitalize()+"Localisation",
+                plugin="romea::ros2::R2WR2R+"+filter_type.capitalize()+"Localisation",
                 name=filter_name,
                 parameters=[filter_configuration],
             )

@@ -104,7 +104,7 @@ template<core::FilterType FilterType_>
 void R2RLocalisation<FilterType_>::make_diagnostic_publisher_()
 {
   diagnostic_publisher_ = make_diagnostic_publisher<core::DiagnosticReport>(
-    node_, "r2r_localisation", 1.0);
+    node_, node_->get_fully_qualified_name(), 1.0);
 }
 
 //-----------------------------------------------------------------------------

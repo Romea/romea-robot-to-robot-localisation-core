@@ -50,7 +50,7 @@ ament_target_dependencies(${PROJECT_NAME}
   romea_localisation_utils)
 
 if(${ROS_DISTRO} STREQUAL "ROS_GALACTIC")
-  rclcpp_components_register_nodes(${PROJECT_NAME} "romea::ros::R2RKalmanLocalisation")
+  rclcpp_components_register_nodes(${PROJECT_NAME} "romea::ros2::R2RKalmanLocalisation")
 
   add_executable(robot_to_robot_kalman_localisation_node
     src/robot_to_robot_localisation.cpp
@@ -92,13 +92,13 @@ if(${ROS_DISTRO} STREQUAL "ROS_GALACTIC")
     DESTINATION lib/${PROJECT_NAME})
 else()
   rclcpp_components_register_node(${PROJECT_NAME}
-    PLUGIN "romea::R2RKalmanLocalisation"
+    PLUGIN "romea::ros2::R2RKalmanLocalisation"
     EXECUTABLE robot_to_robot_kalman_localisation_node
     EXECUTOR "MultiThreadedExecutor"
   )
 
   rclcpp_components_register_node(${PROJECT_NAME}
-    PLUGIN "romea::R2RParticleLocalisation"
+    PLUGIN "romea::ros2::R2RParticleLocalisation"
     EXECUTABLE robot_to_robot_particle_localisation_node
     EXECUTOR "MultiThreadedExecutor"
   )
